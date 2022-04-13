@@ -243,6 +243,29 @@ def shannon_entropy(p):##得到三元相图中每个点是铁磁的概率
     a[0][ele2]=p[1]
     a[0][ele3]=p[2]
     return clf_phase.predict_proba(a)[0,0]
+def model_sele():
+    df_data,X,y=load_file()
+    X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, random_state=42)
+    xx,yy=Oversampling(X_train,y_train)
+    sclf = StackingClassifier(estimators=[('rf',RandomForestClassifier()), ('etc',ExtraTreesClassifier())], 
+        final_estimator=LogisticRegression())
+    #sv = make_pipeline(StandardScaler(),LinearSVC(random_state=0, tol=1e-5))
+    clfs=[RandomForestClassifier(),xgb.XGBClassifier(),ExtraTreesClassifier(),KNeighborsClassifier(),sclf]
+    acc=['acc']
+    recall=['recall']
+    auc=['auc']
+    for clf in clfs:
+        clf.fit(xx,yy)
+        prodict_prob_y=clf.predict_proba(X_test)[:,1]
+        acc.append(clf.score(X_test,y_test))
+        recall.append(metrics.recall_score(y_test,clf.predict(X_test)))
+        auc.append(metrics.roc_auc_score(y_test,prodict_prob_y))
+        #print(clf.score(X_test,y_test))
+    point=[acc,recall,auc]
+    a=pd.DataFrame(point,columns=['','RandomForestClassifier','xgb','etc','knn','stacking'])
+    a.to_csv("point.csv")
+    print("resoult save in point.csv")
+    return a
 
 
 
@@ -266,7 +289,7 @@ element3=''
 ele1=0
 ele2=0
 ele3=0
-command_str="\nplease a command number \n0:exit application\n1:plot shap\n2:plot confusion_matrix\n3:plot cost sensitive\n4:plot 3 phase \n->"
+command_str="\nplease a command number \n0:exit application\n1:plot shap\n2:plot confusion_matrix\n3:plot cost sensitive\n4:plot 3 phase \n5:model selection\n->"
 while  (1):
     cmd=input(command_str)
     if cmd=='1':
@@ -302,6 +325,8 @@ while  (1):
                 ele3=i
                 break
         plot_three_phase()
+    if cmd =='5':
+        model_sele()
         
         
     if cmd=='0':
