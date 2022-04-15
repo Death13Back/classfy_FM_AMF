@@ -347,7 +347,7 @@ while  (1):
         plot_three_phase()
     if cmd =='5':
         model_sele()
-        
+        break
         
     if cmd=='0':
         print("process end\nthank you")
