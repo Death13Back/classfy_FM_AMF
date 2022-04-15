@@ -19,7 +19,14 @@ import shap
 import itertools
 from sklearn.metrics import confusion_matrix
 import ternary
-
+from imblearn.over_sampling import SMOTE
+import xgboost as xgb
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.neighbors import KNeighborsClassifier
+import sklearn.metrics
+from sklearn.svm import SVC
+from mlxtend.feature_selection import ColumnSelector
+import mlxtend.classifier
 
 
 def load_file(file_name="wuli_and_huaxue.csv"): ##读取文件，返回特征X和标签y
