@@ -182,6 +182,10 @@ def cost_sensitive(clf,Xtest,Ytest):##绘制代价敏感曲线
     
     mingan = np.array(mingan)
     lll = np.array(lll)
+    #
+    a=mingan
+    b=lll
+    #
     pl.plot(lll,mingan,label='cost value')
     pl.scatter(lll,mingan,c="r",s = 12,alpha=0.7)
     font2 = {'family' : 'Times New Roman',
@@ -211,6 +215,7 @@ def cost_sensitive(clf,Xtest,Ytest):##绘制代价敏感曲线
     pl.ylim(0.15,0.3)
     fig.set_size_inches(8, 6)
     pl.show( ) 
+    return a,b
 def plot_three_phase():   ##绘制三元相图
     font2 = {'family' : 'Times New Roman',
     'weight' : 'normal',
