@@ -247,25 +247,45 @@ def model_sele():
     df_data,X,y=load_file()
     X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, random_state=42)
     xx,yy=Oversampling(X_train,y_train)
-    sclf = StackingClassifier(estimators=[('rf',RandomForestClassifier()), ('etc',ExtraTreesClassifier())], 
-        final_estimator=LogisticRegression())
-    #sv = make_pipeline(StandardScaler(),LinearSVC(random_state=0, tol=1e-5))
+
+    wuli=()
+    huaxue=()
+    for i in range(120):
+        wuli=(xx.shape[1]-i-1,)+wuli
+    for i in range(88):
+        huaxue=huaxue+(i,)
+    pipe1 = make_pipeline(ColumnSelector(cols=wuli),
+                         ExtraTreesClassifier())
+    pipe2 = make_pipeline(ColumnSelector(cols=wuli),
+                          RandomForestClassifier())
+
+    pipe3 = make_pipeline(ColumnSelector(cols=huaxue),
+                         ExtraTreesClassifier())
+    pipe4 = make_pipeline(ColumnSelector(cols=huaxue),
+                          RandomForestClassifier())
+    sclf = mlxtend.classifier.StackingClassifier(classifiers=[pipe1, pipe2,pipe3,pipe4], 
+                                  meta_classifier=LogisticRegression())
     clfs=[RandomForestClassifier(),xgb.XGBClassifier(),ExtraTreesClassifier(),KNeighborsClassifier(),sclf]
     acc=['acc']
     recall=['recall']
     auc=['auc']
+    FM_pre=['FM_pre']
     for clf in clfs:
         clf.fit(xx,yy)
         prodict_prob_y=clf.predict_proba(X_test)[:,1]
+        y_probabilities_rf=prodict_prob_y
+        y_test_predictions_high_recall = y_probabilities_rf > 0.5
+        cnf_matrix = confusion_matrix(y_test,y_test_predictions_high_recall)
+        FM_pre.append(cnf_matrix[0,0]/(cnf_matrix[0,0]+cnf_matrix[0,1]))
         acc.append(clf.score(X_test,y_test))
         recall.append(metrics.recall_score(y_test,clf.predict(X_test)))
         auc.append(metrics.roc_auc_score(y_test,prodict_prob_y))
         #print(clf.score(X_test,y_test))
-    point=[acc,recall,auc]
-    a=pd.DataFrame(point,columns=['','RandomForestClassifier','xgb','etc','knn','stacking'])
+    point=[acc,recall,auc,FM_pre]
+    a=pd.DataFrame(point,columns=['','RF','xgb','ETC','knn','stacking'])
     a.to_csv("point.csv")
     print("resoult save in point.csv")
-    return a
+    return a 
 
 
 
