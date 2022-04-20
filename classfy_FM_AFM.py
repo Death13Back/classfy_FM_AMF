@@ -27,8 +27,6 @@ import sklearn.metrics
 from sklearn.svm import SVC
 from mlxtend.feature_selection import ColumnSelector
 import mlxtend.classifier
-
-
 def load_file(file_name="wuli_and_huaxue.csv"): ##读取文件，返回特征X和标签y
     df_data=pd.read_csv(file_name)
     data=np.array(df_data)
@@ -97,31 +95,35 @@ def plot_shap(clf,data_train,data_valid,df_data):##绘制shap图像
     pl.savefig("./shap1.tif",dpi=1200,bbox_inches = "tight")
     shap.summary_plot(shap_values, X, plot_type="bar",show = False)
     pl.savefig("./shap2.tif",dpi=1200,bbox_inches = "tight")
-def Oversampling(X,y):##过采样奈尔温度数据
+def Oversampling(X,y):##smote过采样奈尔温度数据
     count=0
-    for i in range(len(y)):
-        if y[i]==0:
-            count=count+1
-    count_neer=len(y)-count
-    count_juli=count
-    xx=[]
-    yy=[]
-    for i in range(count_juli):
-        xx.append(X[i,:])
-        yy.append(y[i])
-    
-    for i in range(count_juli-count_neer):
-        a=random.randint(count_juli,len(y)-1)
-        xx.append(X[a,:])
-        yy.append(y[a])
-    for i in range(count_neer):
-        xx.append(X[i+count_juli,:])
-        yy.append(y[i+count_juli])
-    xx=np.array(xx)
-    xx=np.float32(xx)
-    yy=np.array(yy)
-    yy=np.float32(yy)
-    return xx,yy
+    sm = SMOTE(random_state=42)
+    X_res, y_res = sm.fit_resample(X, y)
+    return X_res, y_res
+#    count=0
+#    for i in range(len(y)):
+#        if y[i]==0:
+#            count=count+1
+#    count_neer=len(y)-count
+#    count_juli=count
+#    xx=[]
+#    yy=[]
+#    for i in range(count_juli):
+#        xx.append(X[i,:])
+#        yy.append(y[i])
+#    
+#    for i in range(count_juli-count_neer):
+#        a=random.randint(count_juli,len(y)-1)
+#        xx.append(X[a,:])
+#        yy.append(y[a])
+#    for i in range(count_neer):
+#        xx.append(X[i+count_juli,:])
+#        yy.append(y[i+count_juli])
+#    xx=np.array(xx)
+#    xx=np.float32(xx)
+#    yy=np.array(yy)
+#    yy=np.float32(yy)
+#    return xx,yy
 def plot_confusion_matrix(cm, classes,
                           title='Confusion matrix',
                           cmap=pl.cm.Blues):
@@ -142,6 +144,7 @@ def plot_confusion_matrix(cm, classes,
     pl.tight_layout()
     pl.ylabel('True label',fontsize =15,family = 'Times New Roman')
     pl.xlabel('Predicted label',fontsize =15,family = 'Times New Roman')
+    pl.savefig('confusion_ma.tif', dpi=300,bbox_inches ="tight")
     
 def plot_matrix(clf,Xtest,Ytest):##绘制混淆矩阵
     prodict_prob_y=clf.predict_proba(Xtest)[:,1]
@@ -157,6 +160,7 @@ def plot_matrix(clf,Xtest,Ytest):##绘制混淆矩阵
     np.set_printoptions(precision=2)  
     class_names = [0,1]
     plot_confusion_matrix(cnf_matrix,classes=class_names)
+    return cnf_matrix
 def cost_sensitive(clf,Xtest,Ytest):##绘制代价敏感曲线
     prodict_prob_y=clf.predict_proba(Xtest)[:,1]
     y_probabilities_rf=prodict_prob_y
@@ -176,7 +180,8 @@ def cost_sensitive(clf,Xtest,Ytest):##绘制代价敏感曲线
         C00 = cnf_matrix[0][0]
         C11 = cnf_matrix[1][1]
         C =C01+C00+C10+C11
-        cost = (2*(C01)/((C11+C10)))+((1.5*C10)/((C11+C01)))
+        #cost = (2*(C01)/((C11+C10)))+((1.5*C10)/((C11+C01)))
+        cost = (1.5*(C01)/((C00+C01)))+((1.*C10)/((C11+C10)))
         COST=cost
         mingan.append(COST)
     
@@ -311,8 +316,6 @@ def model_sele():
     a=pd.DataFrame(a)
     return result,a 
 
-
-
     
     
 
@@ -372,6 +375,7 @@ while  (1):
     if cmd =='5':
         model_sele()
         break
+        
         
     if cmd=='0':
         print("process end\nthank you")
